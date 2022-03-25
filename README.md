@@ -1,48 +1,48 @@
 # Casper Signer
 
-The Casper Signer is a browser plugin used to sign transactions for the Casper Network.
+Casper Signerは、Casper Networkのトランザクションへ署名するブラウザープラグインです。
 
-You can find the latest version on the [Chrome Web Store](https://chrome.google.com/webstore/detail/casperlabs-signer/djhndpllfiibmcdbnmaaahkhchcoijce). For help and usage tips, check out the [Casper Signer User Guide](https://casper.network/docs/workflow/signer-guide).
+最新バージョンは、[Chrome Web Store](https://chrome.google.com/webstore/detail/casperlabs-signer/djhndpllfiibmcdbnmaaahkhchcoijce)にあります。使い方やヘルプは、[Casper Signer ユーザーガイド](https://casper.blockchaintechlab.jp/casper-network/documentation/how-to/casper-signer%e3%83%a6%e3%83%bc%e3%82%b6%e3%83%bc%e3%82%ac%e3%82%a4%e3%83%89/)をご確認ください。
 
-**Note:** The Casper Signer supports Google Chrome and Chromium-based browsers like Brave. We recommend using the latest available browser versions.
+**Note:** Casper Signerは、Google ChromeとBraveの様なChromiumベースのブラウザーで利用できます。最新バージョンのブラウザーの使用を推奨しています。
 
-## Integrating with the Casper Signer
+## Casper Signerとの接続
 
-To integrate your website with the Casper Signer on Mainnet, you need to go through an [approval process](https://github.com/casper-ecosystem/signer/wiki/Casper-Signer-Whitelisting-Request-Guide).
+Mainnet上でCasper Signerをご利用のウェブサイトに接続する際は、[承認プロセス](https://github.com/casper-ecosystem/signer/wiki/Casper-Signer-Whitelisting-Request-Guide)を踏んでください。
 
 ## Architecture 
 
-The Casper Signer browser extension has four components outlined here.
+Casper Signerの拡張機能が持っている4つのコンポーネントの概要は下記のとおりとなります。
 
-### 1. User Interface
+### 1. ユーザーインターフェイス
 
-The directory `src/popup` contains the web extension's user interface (UI), written in React. Since we do not store state information when the user closes the Signer window, we need to use the background script in the next step, which acts as a server. 
+src/popupのディレクトリーには、Reactで書かれたブラウザーのユーザーインターフェイス（UI）があります。ユーザーがSignerをクローズする時に、状態を保存しない為、次のステップにあるサーバーとして動作するバックグラウンドスクリプトを使用する必要があります。 
 
-To synchronize and modify its state, the UI calls the background script via RPC, sending an update request. Thus, the UI will refresh.
+RPCを介したバックグラウンドへのUIによる呼び出しによるアップデートリクエストの送信にて、その状態の同期と修正を行います。
 
-### 2. Background Script
+### 2. バックグラウンドスクリプト
 
-The second component is a script that works in the background as a back-end server, providing RPC methods for updating the UI. The related source code is in `src/background`.
+2つめのコンポーネントは、UIをアップデートするRPCメソッドを提供するバックエンドサーバーとしてバックグランドで動作するスクリプトです。関連するソースコードは、src/backgroundにあります。
 
-### 3. Content Script
+### 3. コンテントスクリプト
 
-A content script is also part of the Casper Signer extension and runs in the context of a particular webpage. You can specify which web page can run the content script by adding a rule in `manifest.json/content_scripts`. 
+コンテントスクリプトは、Casper Signer拡張機能の一部であり、対象のウェブページで機能します。`manifest.json/content_scripts`にルールの追加をし、どのウェブページにコンテントスクリプトを実行させるかを指定できます。 
 
-When a web page is integrated with the Signer, such as the [CSPR.live](https://cspr.live/) block explorer; the web extension creates a new *ContentScript* in the web page context. You will find the source code in `src/content/contentscript.ts`. 
+ブロックエクスプローラ[CSPR.live](https://cspr.live/)の様なウェブページにSignerを紐づけた際、ウェブ拡張機能が新しい*ContentScript*をウェブページのコンテキスト内に作成します。ソースコードは、`src/content/contentscript.ts`にあります。 
 
-Thus you need to set up the content script for each page in question and call in the inject script, `inject.ts`, into the DOM before anything loads. Then, the content script sets up a proxy to receive requests from the injected script and forward them to the background script.
+よって、質問にて各ページのコンテントスクリプトをセットアップし、`inject.ts`のインジェクトスクリプトを何もロードをしない内にDOMへ呼び出す必要があります。その時点で、コンテントスクリプトは、注入されたスクリプトからリクエストを受け取るプロキシをセットアップし、バックグラウンドスクリプトにそれを転送します。
 
-### 4. Inject Script
+### 4. スクリプトの注入
 
-The fourth component is the inject script, `inject.ts`, which runs inside the context of the web page integrated with the Casper Signer. Remember from the previous step that the content script calls the inject script, which creates a global instance of the `CasperLabsPluginHelper`, and the web page can call `window.casperlabsHelper`.
+4つ目のコンポーネントは、スクリプトの注入（`inject.ts`）です。それは、Casper Signerと紐づいているウェブページのコンテキスト内で実行します。コンテントスクリプトが、前述した注入スクリプトを呼び出すステップを記憶し、`CasperLabsPluginHelper`のグローバルインスタンスを作成すると、ウェブページが`window.casperlabsHelper`を呼び出せるようになります。
 
-## Developing Locally
+## ローカルでの開発
 
-Here we provide some helpful commands for building and running the Casper Signer.
+Casper Signerをビルドし実行する為の役立つコマンドをいくつか提供しています。
 
-### Prerequisites
+### 前提条件
 
-First, you need to install `npm`, which will help you set up all the dependencies.
+まず初めに、全ての依存関係をセットアップする際に使う`npm`をインストールする必要があります。
 
 ```bash
 
@@ -50,9 +50,9 @@ npm install
 
 ```
 
-### Building the Casper Signer
+### Casper Signerのビルド
 
-The next command builds the Casper Signer and outputs the bundle files to the `build` directory. This command will also help you rebuild the code of the user interface; however, you need to reopen or refresh the Singer pop-up window to see the changes take effect.
+次のコマンドは、Casper Signerをビルドし、`build`ディレクトリにファイル達を出力します。このコマンドは、ユーザーインターフェイスの再構築に役立ちますが、変更の反映を確認する際はSignerのポップアップを再度開くかリフレッシュしてください。
 
 ```bash
 
@@ -60,9 +60,9 @@ npm run watch
 
 ```
 
-### Running the Scripts
+### スクリプトの実行
 
-The following command builds the background, content, and inject scrips in *watch* mode. When using this command, you have to reload the extension on Chrome's extension manager page.
+下記のコマンドは、バックグラウンドとコンテント、注入スクリプトを*watch*モードでビルドします。このコマンドを使用する際は、Chromeの拡張機能の管理ページ上で拡張機能をリロードしなくてはなりません。
 
 ```bash
 
@@ -70,9 +70,9 @@ npm run scripts_watch
 
 ```
 
-### Building and Publishing
+### ビルドと公開
 
-To build and publish your changes, run the following command. You will find the built package in the `artifacts` directory.
+変更のビルドと公開には、下記コマンドを実行してください。`artifacts`ディレクトリにビルドされたパッケージが作成されます。
 
 ```bash
 
